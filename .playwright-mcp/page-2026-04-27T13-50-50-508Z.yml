@@ -1,0 +1,34 @@
+- generic [ref=e48]:
+  - generic [ref=e49]:
+    - heading "Test Complete" [level=2] [ref=e50]
+    - generic [ref=e51]:
+      - generic [ref=e52]: "3358"
+      - text: 词
+    - generic [ref=e53]: 初中水平
+  - generic [ref=e54]:
+    - generic [ref=e55]:
+      - generic [ref=e56]: 正确率
+      - generic [ref=e57]: 50.0%
+    - generic [ref=e58]:
+      - generic [ref=e59]: 答对
+      - generic [ref=e60]: "25"
+    - generic [ref=e61]:
+      - generic [ref=e62]: 总题数
+      - generic [ref=e63]: "50"
+    - generic [ref=e64]:
+      - generic [ref=e65]: 词汇量
+      - generic [ref=e66]: "3358"
+  - generic [ref=e67]:
+    - heading "学习建议" [level=3] [ref=e68]
+    - generic [ref=e69]:
+      - paragraph [ref=e71]: 可以开始学习一些专业领域的词汇
+      - paragraph [ref=e73]: 通过阅读英文文章和书籍来扩大词汇量
+      - paragraph [ref=e75]: 注意单词的搭配和用法，提高语言表达能力
+      - paragraph [ref=e77]: 建议每天学习30-40个新单词，并进行复习
+  - generic [ref=e78]:
+    - heading "错题回顾" [level=3] [ref=e79]
+    - generic [ref=e81]:
+      - generic [ref=e82]: run
+      - generic [ref=e83]: →
+      - generic [ref=e84]: v.跑
+  - button "再来一次" [ref=e86] [cursor=pointer]

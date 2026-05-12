@@ -1,0 +1,38 @@
+# 编译输出
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+
+# 词库数据（大文件）
+data/word_bank/*.json
+!data/word_bank/.gitkeep
+
+# Excel源文件（可选）
+data/word_bank/*.xlsx
+data/word_bank/*.xls
+
+# 临时文件
+*.tmp
+*.temp

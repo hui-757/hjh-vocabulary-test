@@ -1,0 +1,15 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - heading "Vocabulary Assessment" [level=1] [ref=e6]:
+      - text: Vocabulary
+      - text: Assessment
+    - paragraph
+    - paragraph [ref=e7]: 从词库中随机抽取 50 个单词进行测试，
+    - paragraph [ref=e8]: 通过正确率估算你的词汇量水平。
+    - paragraph
+    - generic [ref=e9]: → 准备好开始了吗？
+  - generic [ref=e10]:
+    - generic [ref=e11] [cursor=pointer]:
+      - heading "综合词汇测评" [level=3] [ref=e12]
+      - generic [ref=e13]: 3481 词
+    - button "开始测评" [ref=e17] [cursor=pointer]

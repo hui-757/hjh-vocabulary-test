@@ -1,0 +1,14 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - heading "Vocabulary Test" [level=2] [ref=e20]
+    - generic [ref=e21]: 2 / 50
+  - generic [ref=e25]: autumn
+  - generic [ref=e26]:
+    - generic [ref=e36] [cursor=pointer]: n.内心;心脏
+    - generic [ref=e37] [cursor=pointer]: a.锋利的，尖的
+    - generic [ref=e38] [cursor=pointer]: n.罪犯；adj.犯法的，犯罪的
+    - generic [ref=e39] [cursor=pointer]: v. 造成；引起
+    - generic [ref=e40] [cursor=pointer]: n.半圆
+    - generic [ref=e41] [cursor=pointer]: n.秋天,秋季
+  - generic [ref=e33] [cursor=pointer]: 不认识这个单词
+  - button "提交答案" [ref=e35] [cursor=pointer]

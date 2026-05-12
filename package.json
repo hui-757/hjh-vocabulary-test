@@ -1,0 +1,23 @@
+{
+  "name": "vocabulary-test-system",
+  "version": "1.0.0",
+  "description": "词汇量测评系统 - 基于网页的分层抽样词汇测试工具",
+  "main": "src/pages/index.html",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "test": "python -m pytest backend/tests/",
+    "convert": "python backend/scripts/convert_excel.py",
+    "update-bank": "python backend/scripts/update_word_bank.py",
+    "stats": "python backend/scripts/stats.py"
+  },
+  "keywords": [
+    "vocabulary",
+    "test",
+    "education",
+    "english"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}

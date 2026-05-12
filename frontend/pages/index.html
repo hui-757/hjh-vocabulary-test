@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词汇量测评</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/index.css">
+</head>
+<body>
+    <div class="container">
+        
+        <!-- ==================== 开始页面 ==================== -->
+        <section id="start-page" class="page-section active">
+            <div class="start-layout">
+                <!-- 左侧标题区 -->
+                <div class="title-area">
+                    <h1>Vocabulary<br>Assessment</h1>
+                    <p class="subtitle">
+                        <p>从词库中随机抽取 50 个单词进行测试，</p>
+                        <p>通过正确率估算你的词汇量水平。</p>
+                    </p>
+                    <div class="note-scribble">→ 准备好开始了吗？</div>
+                </div>
+                
+                <!-- 右侧内容区 -->
+                <div>
+                    <!-- 词汇集卡片 -->
+                    <div class="vocab-card mb-2" id="vocab-card" onclick="app.startExam()">
+                        <h3>综合词汇测评</h3>
+                        <div class="word-count">
+                            <span id="word-count-display">加载中...</span> 词
+                        </div>
+                        <div class="hand-drawn-progress">
+                            <div class="fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 加载状态 -->
+                    <div id="loading-indicator" style="display: none;">
+                        <div class="ink-loading">
+                            <div class="ink-dot"></div>
+                            <div class="ink-dot"></div>
+                            <div class="ink-dot"></div>
+                        </div>
+                        <p class="text-center" style="color: var(--text-muted);">正在加载词库...</p>
+                    </div>
+                    
+                    <!-- 错误状态 -->
+                    <div id="error-message" class="hidden">
+                        <p class="status-error text-center">词库加载失败</p>
+                        <p class="text-center" style="color: var(--text-muted); font-size: 0.9rem;">
+                            请检查 data/word_bank/word_bank.json 是否存在
+                        </p>
+                    </div>
+                    
+                    <div class="action-area">
+                        <button id="start-button" class="btn btn-filled" onclick="app.startExam()" disabled>
+                            开始测评
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==================== 测评页面 ==================== -->
+        <section id="exam-page" class="page-section">
+            <!-- 头部 -->
+            <div class="exam-header">
+                <h2>Vocabulary Test</h2>
+                <span class="progress-info">
+                    <span id="progress-text">1 / 50</span>
+                </span>
+            </div>
+            
+            <!-- 进度条 -->
+            <div class="progress-track">
+                <div class="progress-fill" id="exam-progress" style="width: 2%"></div>
+            </div>
+            
+            <!-- 单词展示区 -->
+            <div class="word-stage">
+                <div class="word-display" id="current-word">单词</div>
+                <div class="word-phonetic" id="word-phonetic"></div>
+            </div>
+            
+            <!-- 选项区 -->
+            <div id="options-container" class="options-area">
+                <!-- 选项由 JS 动态生成 -->
+            </div>
+            
+            <!-- 不认识 -->
+            <div class="option-dont-know" id="dont-know-option" onclick="app.selectOption(this, '不认识')">
+                不认识这个单词
+            </div>
+            
+            <!-- 反馈区 -->
+            <div class="feedback-area" id="feedback-container">
+                <div class="feedback-message" id="feedback-message"></div>
+                <div id="correct-answer-display"></div>
+                <div class="submit-area" style="margin-top: 1.5rem;">
+                    <button class="btn" id="next-button" onclick="app.nextQuestion()">继续下一题 →</button>
+                </div>
+            </div>
+            
+            <!-- 提交按钮 -->
+            <div class="submit-area" id="submit-container">
+                <button class="btn btn-filled" onclick="app.submitAnswer()">提交答案</button>
+            </div>
+        </section>
+        
+        <!-- ==================== 结果页面 ==================== -->
+        <section id="result-page" class="page-section">
+            <div class="result-header">
+                <h2>Test Complete</h2>
+                
+                <!-- 分数展示 -->
+                <div class="score-display">
+                    <div class="score-circle"></div>
+                    <span class="score-number" id="vocabulary-size">0</span>
+                    <span class="score-unit">词</span>
+                </div>
+                
+                <div class="level-badge" id="level">未评定</div>
+            </div>
+            
+            <!-- 统计网格 -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">正确率</div>
+                    <div class="stat-value" id="correct-rate">0%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">答对</div>
+                    <div class="stat-value" id="correct-count">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">总题数</div>
+                    <div class="stat-value" id="total-answered">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">词汇量</div>
+                    <div class="stat-value" id="vocab-size-display">0</div>
+                </div>
+            </div>
+            
+            <!-- 学习建议 -->
+            <div class="suggestions-section" id="suggestions-section">
+                <h3>学习建议</h3>
+                <div id="suggestions-container">
+                    <!-- 由 JS 动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 错题回顾 -->
+            <div class="wrong-answers" id="wrong-answers-section" style="display: none;">
+                <h3>错题回顾</h3>
+                <div id="wrong-answers-container">
+                    <!-- 由 JS 动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 操作区 -->
+            <div class="action-area">
+                <button class="btn btn-stamp" onclick="app.resetExam()">
+                    再来一次
+                </button>
+            </div>
+        </section>
+    </div>
+    
+    <script src="../js/common.js"></script>
+    <script src="../js/wordBank.js"></script>
+    <script src="../js/exam.js"></script>
+    <script>
+        /**
+         * 应用主控制器
+         */
+        var app = {
+            wordBankLoader: null,
+            exam: null,
+            
+            init() {
+                // 初始化词库加载器
+                this.wordBankLoader = new WordBankLoader({
+                    filePath: '../../data/word_bank/word_bank.json',
+                    timeout: 60000,
+                    onLoad: (words) => this.onWordBankLoaded(words),
+                    onError: (error) => this.onWordBankError(error)
+                });
+                
+                this.wordBankLoader.load();
+            },
+            
+            onWordBankLoaded(words) {
+                const wordCountDisplay = document.getElementById('word-count-display');
+                const startButton = document.getElementById('start-button');
+                const loadingIndicator = document.getElementById('loading-indicator');
+                const vocabCard = document.getElementById('vocab-card');
+                
+                if (wordCountDisplay) {
+                    wordCountDisplay.textContent = words.length;
+                }
+                
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+                
+                if (startButton) {
+                    startButton.disabled = false;
+                }
+                
+                // 更新进度条
+                const progressFill = document.querySelector('.hand-drawn-progress .fill');
+                if (progressFill) {
+                    progressFill.style.width = '100%';
+                }
+                
+                // 卡片可点击
+                if (vocabCard) {
+                    vocabCard.style.cursor = 'pointer';
+                }
+            },
+            
+            onWordBankError(error) {
+                const loadingIndicator = document.getElementById('loading-indicator');
+                const errorMessage = document.getElementById('error-message');
+                
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+                
+                if (errorMessage) {
+                    errorMessage.classList.remove('hidden');
+                }
+            },
+            
+            checkLoadingStatus() {
+                if (this.wordBankLoader.isLoading) {
+                    alert('词库正在加载中，请稍候...');
+                } else if (this.wordBankLoader.isReady()) {
+                    alert(`词库加载完成，共 ${this.wordBankLoader.words.length} 个单词`);
+                } else {
+                    alert('词库加载失败，请检查文件路径');
+                }
+            },
+            
+            startExam() {
+                if (!this.wordBankLoader.isReady()) {
+                    alert('词库尚未加载完成，请稍候');
+                    return;
+                }
+                
+                // 初始化测评
+                this.exam = new VocabularyExam({
+                    wordBank: this.wordBankLoader.words,
+                    onQuestionChange: (index) => this.updateProgress(index),
+                    onAnswer: (result) => this.onAnswer(result),
+                    onExamEnd: (result) => this.showResult(result)
+                });
+                
+                this.exam.start();
+                
+                // 切换页面
+                this.switchPage('exam-page');
+                
+                // 显示第一题
+                this.showQuestion();
+            },
+            
+            showQuestion() {
+                const wordData = this.exam.examWords[this.exam.currentQuestion];
+                const options = this.exam.generateOptions(wordData.mean);
+                
+                // 更新单词
+                document.getElementById('current-word').textContent = wordData.word;
+                
+                // 更新进度
+                this.updateProgress(this.exam.currentQuestion);
+                
+                // 生成选项（便签条样式）
+                const container = document.getElementById('options-container');
+                container.innerHTML = '';
+                
+                options.forEach((option, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'option-note';
+                    div.textContent = option;
+                    div.onclick = () => this.selectOption(div, option);
+                    container.appendChild(div);
+                });
+                
+                // 重置不认识选项
+                const dontKnowOption = document.getElementById('dont-know-option');
+                if (dontKnowOption) {
+                    dontKnowOption.classList.remove('selected');
+                    dontKnowOption.style.borderStyle = 'dashed';
+                    dontKnowOption.style.borderColor = 'var(--text-muted)';
+                }
+                
+                // 重置状态
+                const feedbackContainer = document.getElementById('feedback-container');
+                const submitContainer = document.getElementById('submit-container');
+                
+                if (feedbackContainer) {
+                    feedbackContainer.style.display = 'none';
+                    feedbackContainer.className = 'feedback-area';
+                }
+                if (submitContainer) {
+                    submitContainer.style.display = 'block';
+                }
+            },
+            
+            updateProgress(index) {
+                const current = Math.min(index + 1, this.exam.examWords.length);
+                const total = this.exam.examWords.length;
+                const percent = (current / total) * 100;
+                
+                document.getElementById('progress-text').textContent = `${current} / ${total}`;
+                document.getElementById('exam-progress').style.width = `${percent}%`;
+            },
+            
+            selectOption(element, option) {
+                // 移除其他选项的选中状态
+                document.querySelectorAll('.option-note').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                
+                // 设置当前选项选中
+                element.classList.add('selected');
+                this.exam.selectedOption = option;
+                
+                // 如果选择了"不认识"
+                if (option === '不认识') {
+                    const dontKnowOption = document.getElementById('dont-know-option');
+                    if (dontKnowOption) {
+                        dontKnowOption.style.borderStyle = 'solid';
+                        dontKnowOption.style.borderColor = 'var(--red-pen)';
+                        dontKnowOption.style.background = 'rgba(228, 87, 46, 0.05)';
+                    }
+                }
+            },
+            
+            submitAnswer() {
+                if (!this.exam.selectedOption) {
+                    // 震动提示
+                    const container = document.getElementById('options-container');
+                    if (container) {
+                        container.classList.add('shake');
+                        setTimeout(() => container.classList.remove('shake'), 500);
+                    }
+                    return;
+                }
+                
+                const result = this.exam.submitAnswer(this.exam.selectedOption);
+                const wordData = this.exam.examWords[this.exam.currentQuestion];
+                
+                // 标记选项
+                document.querySelectorAll('.option-note').forEach(el => {
+                    if (el.textContent === wordData.mean) {
+                        el.classList.add('correct');
+                    } else if (el.classList.contains('selected')) {
+                        el.classList.add('incorrect');
+                    }
+                });
+                
+                // 显示反馈
+                const feedbackContainer = document.getElementById('feedback-container');
+                const feedbackMessage = document.getElementById('feedback-message');
+                const correctAnswerDisplay = document.getElementById('correct-answer-display');
+                const submitContainer = document.getElementById('submit-container');
+                
+                if (result.isCorrect) {
+                    feedbackMessage.textContent = '正确！';
+                    feedbackContainer.className = 'feedback-area success';
+                    if (correctAnswerDisplay) correctAnswerDisplay.innerHTML = '';
+                    
+                    // 显示星标奖励
+                    this.showStarReward();
+                    
+                    // 自动下一题
+                    setTimeout(() => this.nextQuestion(), this.exam.autoNextDelay);
+                } else {
+                    feedbackMessage.textContent = '错误';
+                    feedbackContainer.className = 'feedback-area error';
+                    if (correctAnswerDisplay) {
+                        correctAnswerDisplay.innerHTML = 
+                            `<span class="correct-answer-reveal">正确答案：${wordData.mean}</span>`;
+                    }
+                }
+                
+                if (feedbackContainer) {
+                    feedbackContainer.style.display = 'block';
+                }
+                if (submitContainer) {
+                    submitContainer.style.display = 'none';
+                }
+            },
+            
+            showStarReward() {
+                const star = document.createElement('div');
+                star.className = 'star-reward';
+                star.textContent = '✦';
+                star.style.left = Math.random() * 80 + 10 + '%';
+                star.style.top = Math.random() * 50 + 10 + '%';
+                document.body.appendChild(star);
+                
+                setTimeout(() => star.remove(), 1000);
+            },
+            
+            onAnswer(result) {
+                console.log('答题结果:', result);
+            },
+            
+            nextQuestion() {
+                const result = this.exam.nextQuestion();
+                
+                if (result && result.hasNext) {
+                    this.showQuestion();
+                }
+            },
+            
+            switchPage(pageId) {
+                const currentPage = document.querySelector('.page-section.active');
+                if (currentPage) {
+                    currentPage.classList.add('page-exit');
+                    setTimeout(() => {
+                        currentPage.classList.remove('active', 'page-exit');
+                        document.getElementById(pageId).classList.add('active');
+                    }, 400);
+                } else {
+                    document.getElementById(pageId).classList.add('active');
+                }
+            },
+            
+            showResult(result) {
+                document.getElementById('vocabulary-size').textContent = result.vocabularySize;
+                document.getElementById('vocab-size-display').textContent = result.vocabularySize;
+                document.getElementById('level').textContent = result.level;
+                document.getElementById('correct-count').textContent = result.correctCount;
+                document.getElementById('total-answered').textContent = result.totalAnswered;
+                document.getElementById('correct-rate').textContent = `${result.correctRate}%`;
+                
+                // 学习建议
+                const suggestionsContainer = document.getElementById('suggestions-container');
+                suggestionsContainer.innerHTML = '';
+                result.suggestions.forEach(suggestion => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-note';
+                    div.innerHTML = `<p>${suggestion}</p>`;
+                    suggestionsContainer.appendChild(div);
+                });
+                
+                // 错题回顾
+                const wrongAnswers = this.exam.answers.filter(a => !a.isCorrect);
+                const wrongAnswersSection = document.getElementById('wrong-answers-section');
+                
+                if (wrongAnswers.length > 0) {
+                    wrongAnswersSection.style.display = 'block';
+                    const wrongContainer = document.getElementById('wrong-answers-container');
+                    wrongContainer.innerHTML = '';
+                    
+                    wrongAnswers.forEach(answer => {
+                        const div = document.createElement('div');
+                        div.className = 'wrong-item';
+                        div.innerHTML = `
+                            <span class="wrong-word">${answer.word}</span>
+                            <span class="wrong-arrow">→</span>
+                            <span class="wrong-correct">${answer.correct}</span>
+                        `;
+                        wrongContainer.appendChild(div);
+                    });
+                } else {
+                    wrongAnswersSection.style.display = 'none';
+                }
+                
+                this.switchPage('result-page');
+            },
+            
+            resetExam() {
+                this.switchPage('start-page');
+            }
+        };
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>

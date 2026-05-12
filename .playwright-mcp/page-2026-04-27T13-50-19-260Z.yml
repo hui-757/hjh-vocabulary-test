@@ -1,0 +1,14 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - heading "Vocabulary Test" [level=2] [ref=e20]
+    - generic [ref=e21]: 1 / 50
+  - generic [ref=e25]: say
+  - generic [ref=e26]:
+    - generic [ref=e42] [cursor=pointer]: n.鲨鱼
+    - generic [ref=e43] [cursor=pointer]: n.灰尘，尘土
+    - generic [ref=e44] [cursor=pointer]: vt.说,讲
+    - generic [ref=e45] [cursor=pointer]: n. 悬挂；悬浮；暂停
+    - generic [ref=e46] [cursor=pointer]: n. 一条（面包）；一块（食物）；v. 游荡；虚度光阴
+    - generic [ref=e47] [cursor=pointer]: n.书法
+  - generic [ref=e33] [cursor=pointer]: 不认识这个单词
+  - button "提交答案" [ref=e35] [cursor=pointer]

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词库管理工具</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        .tool-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .tool-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-muted);
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+        }
+        
+        .tool-tab:hover {
+            color: var(--primary-color);
+        }
+        
+        .tool-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .tool-panel {
+            display: none;
+        }
+        
+        .tool-panel.active {
+            display: block;
+        }
+        
+        .level-config {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 5px;
+        }
+        
+        .level-item {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .output-area {
+            margin-top: 20px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>词库管理工具</h1>
+        
+        <div class="tool-tabs">
+            <button class="tool-tab active" onclick="switchTab('excel-tab')">Excel转JSON</button>
+            <button class="tool-tab" onclick="switchTab('json-tab')">JSON修复</button>
+            <button class="tool-tab" onclick="switchTab('level-tab')">级别修复</button>
+        </div>
+        
+        <!-- Excel转JSON面板 -->
+        <div id="excel-tab" class="tool-panel active">
+            <div class="card card-info">
+                <h3>使用说明</h3>
+                <ol>
+                    <li>选择要转换的Excel文件（支持多个文件）</li>
+                    <li>配置文件名与级别的对应关系</li>
+                    <li>点击"转换"按钮生成JSON</li>
+                    <li>下载生成的JSON文件到 <code>data/word_bank/word_bank.json</code></li>
+                </ol>
+                <p><strong>注意：</strong>Excel文件需要包含"词汇"和"译文"列。</p>
+            </div>
+            
+            <div class="level-config">
+                <h3>级别配置</h3>
+                <div class="level-item">
+                    <label>小学关键词：</label>
+                    <input type="text" id="primaryKey" value="小学">
+                </div>
+                <div class="level-item">
+                    <label>初中关键词：</label>
+                    <input type="text" id="middleKey" value="初中">
+                </div>
+                <div class="level-item">
+                    <label>高中关键词：</label>
+                    <input type="text" id="highKey" value="高中">
+                </div>
+                <div class="level-item">
+                    <label>四级关键词：</label>
+                    <input type="text" id="collegeKey" value="四级">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <input type="file" id="excelFile" accept=".xlsx,.xls" multiple>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn" onclick="processExcel()">转换</button>
+                <button class="btn btn-secondary" onclick="clearOutput('excel')">清空</button>
+                <button class="btn btn-success" onclick="downloadJson()" id="downloadBtn" style="display:none;">下载JSON</button>
+            </div>
+            
+            <div class="stats" id="excel-stats"></div>
+        </div>
+        
+        <!-- JSON修复面板 -->
+        <div id="json-tab" class="tool-panel">
+            <div class="card card-info">
+                <h3>使用说明</h3>
+                <ol>
+                    <li>选择要修复的JSON文件</li>
+                    <li>点击"修复"按钮</li>
+                    <li>下载修复后的JSON文件</li>
+                </ol>
+                <p><strong>注意：</strong>此工具会修复JSON格式错误并清理无效数据。</p>
+            </div>
+            
+            <div class="button-group">
+                <input type="file" id="jsonFile" accept=".json">
+            </div>
+            
+            <div class="button-group">
+                <button class="btn" onclick="fixJson()">修复</button>
+                <button class="btn btn-secondary" onclick="clearOutput('json')">清空</button>
+                <button class="btn btn-success" onclick="downloadFixedJson()" id="downloadFixedBtn" style="display:none;">下载修复文件</button>
+            </div>
+        </div>
+        
+        <!-- 级别修复面板 -->
+        <div id="level-tab" class="tool-panel">
+            <div class="card card-info">
+                <h3>使用说明</h3>
+                <ol>
+                    <li>选择要修复的JSON文件</li>
+                    <li>点击"修复级别"按钮</li>
+                    <li>下载修复后的JSON文件</li>
+                </ol>
+                <p><strong>注意：</strong>将末尾1866个单词设为高中级别，其余为小学级别。</p>
+            </div>
+            
+            <div class="button-group">
+                <input type="file" id="levelFile" accept=".json">
+            </div>
+            
+            <div class="button-group">
+                <button class="btn" onclick="fixLevels()">修复级别</button>
+                <button class="btn btn-secondary" onclick="clearOutput('level')">清空</button>
+                <button class="btn btn-success" onclick="downloadLevelJson()" id="downloadLevelBtn" style="display:none;">下载修复文件</button>
+            </div>
+            
+            <div class="stats" id="level-stats"></div>
+        </div>
+        
+        <!-- 公共输出区域 -->
+        <div class="output-area">
+            <h3>输出结果</h3>
+            <textarea id="output" readonly placeholder="处理结果将显示在这里..."></textarea>
+        </div>
+        
+        <div id="status" style="margin-top: 15px;"></div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        // 全局状态
+        let currentJsonData = null;
+        
+        // 标签切换
+        function switchTab(tabId) {
+            document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // Excel转JSON
+        function processExcel() {
+            const fileInput = document.getElementById('excelFile');
+            const output = document.getElementById('output');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                Notify.show('status', '请选择Excel文件', 'error');
+                return;
+            }
+            
+            const levelConfig = {
+                primary: document.getElementById('primaryKey').value.trim(),
+                middle: document.getElementById('middleKey').value.trim(),
+                high: document.getElementById('highKey').value.trim(),
+                college: document.getElementById('collegeKey').value.trim()
+            };
+            
+            const files = Array.from(fileInput.files);
+            const allWords = [];
+            let processed = 0;
+            const stats = { primary: 0, middle: 0, high: 0, college: 0, other: 0 };
+            
+            Notify.show('status', '正在处理文件...', 'info');
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        
+                        workbook.SheetNames.forEach(sheetName => {
+                            const worksheet = workbook.Sheets[sheetName];
+                            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                            
+                            jsonData.forEach(row => {
+                                const word = row['词汇'] || row['word'] || row['Word'];
+                                const mean = row['译文'] || row['mean'] || row['Mean'];
+                                
+                                if (word && mean) {
+                                    let level = '其他';
+                                    const fileName = file.name.toLowerCase();
+                                    
+                                    if (fileName.includes(levelConfig.primary.toLowerCase())) {
+                                        level = '小学'; stats.primary++;
+                                    } else if (fileName.includes(levelConfig.middle.toLowerCase())) {
+                                        level = '初中'; stats.middle++;
+                                    } else if (fileName.includes(levelConfig.high.toLowerCase())) {
+                                        level = '高中'; stats.high++;
+                                    } else if (fileName.includes(levelConfig.college.toLowerCase())) {
+                                        level = '四级'; stats.college++;
+                                    } else {
+                                        stats.other++;
+                                    }
+                                    
+                                    allWords.push({
+                                        word: String(word).trim(),
+                                        mean: String(mean).trim(),
+                                        level: level
+                                    });
+                                }
+                            });
+                        });
+                        
+                        processed++;
+                        
+                        if (processed === files.length) {
+                            currentJsonData = WordBankUtil.createWordBankData(allWords);
+                            output.value = JSON.stringify(currentJsonData, null, 2);
+                            
+                            document.getElementById('excel-stats').innerHTML = `
+                                <p><strong>总单词数:</strong> ${allWords.length}</p>
+                                <p><strong>小学:</strong> ${stats.primary} | <strong>初中:</strong> ${stats.middle}</p>
+                                <p><strong>高中:</strong> ${stats.high} | <strong>四级:</strong> ${stats.college}</p>
+                                <p><strong>其他:</strong> ${stats.other}</p>
+                            `;
+                            
+                            document.getElementById('downloadBtn').style.display = 'inline-block';
+                            Notify.show('status', `转换成功！共 ${allWords.length} 个单词`, 'success');
+                        }
+                    } catch (error) {
+                        Notify.show('status', `处理失败: ${error.message}`, 'error');
+                    }
+                };
+                
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        // JSON修复
+        function fixJson() {
+            const fileInput = document.getElementById('jsonFile');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                Notify.show('status', '请选择JSON文件', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            FileReaderUtil.readText(file).then(content => {
+                try {
+                    content = WordBankUtil.fixJsonData(content);
+                    let data = JSON.parse(content);
+                    
+                    if (!data.words || !Array.isArray(data.words)) {
+                        data.words = [];
+                    }
+                    
+                    const cleanedWords = data.words.filter(WordBankUtil.validateWord);
+                    
+                    currentJsonData = WordBankUtil.createWordBankData(cleanedWords);
+                    currentJsonData.generated_at = data.generated_at || currentJsonData.generated_at;
+                    
+                    document.getElementById('output').value = JSON.stringify(currentJsonData, null, 2);
+                    document.getElementById('downloadFixedBtn').style.display = 'inline-block';
+                    
+                    Notify.show('status', `修复成功！共 ${cleanedWords.length} 个有效单词`, 'success');
+                } catch (error) {
+                    Notify.show('status', `修复失败: ${error.message}`, 'error');
+                }
+            }).catch(error => {
+                Notify.show('status', `读取失败: ${error.message}`, 'error');
+            });
+        }
+        
+        // 级别修复
+        function fixLevels() {
+            const fileInput = document.getElementById('levelFile');
+            const HIGH_SCHOOL_COUNT = 1866;
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                Notify.show('status', '请选择JSON文件', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            FileReaderUtil.readText(file).then(content => {
+                try {
+                    content = WordBankUtil.fixJsonData(content);
+                    const data = JSON.parse(content);
+                    
+                    if (!data.words || !Array.isArray(data.words)) {
+                        throw new Error('词库数据格式错误');
+                    }
+                    
+                    const words = data.words;
+                    const totalWords = words.length;
+                    const highCount = Math.min(HIGH_SCHOOL_COUNT, totalWords);
+                    
+                    // 重置级别
+                    words.forEach(w => w.level = '小学');
+                    
+                    // 设置高中级别
+                    for (let i = totalWords - highCount; i < totalWords; i++) {
+                        words[i].level = '高中';
+                    }
+                    
+                    currentJsonData = {
+                        words: words,
+                        generated_at: data.generated_at || new Date().toISOString(),
+                        total_words: totalWords
+                    };
+                    
+                    document.getElementById('output').value = JSON.stringify(currentJsonData, null, 2);
+                    
+                    document.getElementById('level-stats').innerHTML = `
+                        <p><strong>总单词数:</strong> ${totalWords}</p>
+                        <p><strong>高中级别:</strong> ${highCount}</p>
+                        <p><strong>小学级别:</strong> ${totalWords - highCount}</p>
+                    `;
+                    
+                    document.getElementById('downloadLevelBtn').style.display = 'inline-block';
+                    Notify.show('status', '级别修复成功！', 'success');
+                } catch (error) {
+                    Notify.show('status', `处理失败: ${error.message}`, 'error');
+                }
+            }).catch(error => {
+                Notify.show('status', `读取失败: ${error.message}`, 'error');
+            });
+        }
+        
+        // 下载功能
+        function downloadJson() {
+            if (!currentJsonData) return;
+            downloadFile(currentJsonData, 'word_bank.json');
+        }
+        
+        function downloadFixedJson() {
+            if (!currentJsonData) return;
+            downloadFile(currentJsonData, 'word_bank_fixed.json');
+        }
+        
+        function downloadLevelJson() {
+            if (!currentJsonData) return;
+            downloadFile(currentJsonData, 'word_bank_leveled.json');
+        }
+        
+        function downloadFile(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 清空输出
+        function clearOutput(type) {
+            document.getElementById('output').value = '';
+            document.getElementById('status').innerHTML = '';
+            currentJsonData = null;
+            
+            if (type === 'excel') {
+                document.getElementById('excel-stats').innerHTML = '';
+                document.getElementById('downloadBtn').style.display = 'none';
+            } else if (type === 'json') {
+                document.getElementById('downloadFixedBtn').style.display = 'none';
+            } else if (type === 'level') {
+                document.getElementById('level-stats').innerHTML = '';
+                document.getElementById('downloadLevelBtn').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

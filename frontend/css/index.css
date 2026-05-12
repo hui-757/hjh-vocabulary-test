@@ -1,0 +1,547 @@
+/* ============================================================
+   测评页面专用样式
+   风格：手写笔记 × 编辑排版 × 粗野主义
+   ============================================================ */
+
+/* ========== 首页 ========== */
+.start-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .start-layout {
+    grid-template-columns: 40% 60%;
+    gap: 4rem;
+  }
+}
+
+/* 左侧标题区 */
+.title-area {
+  position: relative;
+}
+
+.title-area h1 {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.title-area h1::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 80px;
+  height: 3px;
+  background: var(--red-pen);
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-top: 2rem;
+}
+
+.subtitle p {
+  margin-bottom: 0.8rem;
+}
+
+/* 手写批注 */
+.note-scribble {
+  font-family: var(--font-hand);
+  font-size: 1.4rem;
+  color: var(--red-pen);
+  margin-top: 2rem;
+  transform: rotate(-2deg);
+  display: inline-block;
+  border-bottom: 2px wavy var(--red-pen);
+}
+
+/* 词汇集卡片 */
+.vocab-card {
+  border: var(--border-ink);
+  padding: 2rem;
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.vocab-card:hover {
+  border-color: var(--red-pen);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-red);
+}
+
+.vocab-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+
+.vocab-card .word-count {
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+  color: var(--red-pen);
+}
+
+/* 手绘进度线 */
+.hand-drawn-progress {
+  margin-top: 1rem;
+  height: 2px;
+  background: rgba(26, 26, 26, 0.1);
+  position: relative;
+}
+
+.hand-drawn-progress .fill {
+  height: 100%;
+  background: var(--red-pen);
+  position: relative;
+}
+
+.hand-drawn-progress .fill::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  background: var(--red-pen);
+  border-radius: 50%;
+}
+
+/* ========== 测评页 ========== */
+.exam-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2rem;
+  border-bottom: var(--border-ink);
+  padding-bottom: 1rem;
+}
+
+.exam-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.progress-info {
+  font-family: var(--font-hand);
+  font-size: 1.3rem;
+  color: var(--red-pen);
+}
+
+/* 单词展示区 */
+.word-stage {
+  text-align: center;
+  padding: clamp(3rem, 8vw, 5rem) 0;
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+/* 模拟笔记本横线 */
+.word-stage::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 39px,
+    rgba(26, 26, 26, 0.06) 39px,
+    rgba(26, 26, 26, 0.06) 40px
+  );
+  pointer-events: none;
+}
+
+.word-display {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+  font-weight: 700;
+  color: var(--ink);
+  position: relative;
+  z-index: 1;
+  letter-spacing: -0.02em;
+}
+
+.word-phonetic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* 选项区 - 便签条样式 */
+.options-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.option-note {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  padding: 1.25rem 1.5rem;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+/* 每个便签条轻微不同旋转 */
+.option-note:nth-child(1) { transform: rotate(-0.5deg); }
+.option-note:nth-child(2) { transform: rotate(0.3deg); }
+.option-note:nth-child(3) { transform: rotate(-0.8deg); }
+.option-note:nth-child(4) { transform: rotate(0.5deg); }
+.option-note:nth-child(5) { transform: rotate(-0.3deg); }
+.option-note:nth-child(6) { transform: rotate(0.7deg); }
+
+.option-note:hover {
+  background: #FEF9E7;
+  transform: rotate(0deg) translateX(4px);
+  box-shadow: 3px 3px 0px rgba(26, 26, 26, 0.2);
+}
+
+/* 选中状态 - 便签黄 + 手写勾选 */
+.option-note.selected {
+  background: #FEF9E7;
+  border-color: var(--highlight);
+  border-width: 2px;
+  transform: rotate(0deg) translateX(4px);
+  box-shadow: 3px 3px 0px var(--highlight);
+}
+
+.option-note.selected::before {
+  content: '✓';
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  font-family: var(--font-hand);
+  font-size: 1.8rem;
+  color: var(--red-pen);
+  transform: rotate(-15deg);
+}
+
+/* 正确状态 */
+.option-note.correct {
+  background: rgba(42, 157, 143, 0.1);
+  border-color: var(--correction);
+  border-width: 2px;
+  transform: rotate(0deg);
+}
+
+.option-note.correct::before {
+  content: '✓';
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  font-family: var(--font-hand);
+  font-size: 1.8rem;
+  color: var(--correction);
+  transform: rotate(-15deg);
+}
+
+/* 错误状态 - 朱红晕染 */
+.option-note.incorrect {
+  background: rgba(228, 87, 46, 0.08);
+  border-color: var(--red-pen);
+  border-width: 2px;
+  transform: rotate(0deg);
+  box-shadow: 
+    0 0 20px rgba(228, 87, 46, 0.15),
+    0 0 40px rgba(228, 87, 46, 0.05);
+}
+
+.option-note.incorrect::before {
+  content: '×';
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  font-family: var(--font-hand);
+  font-size: 1.8rem;
+  color: var(--red-pen);
+  transform: rotate(10deg);
+}
+
+/* 不认识选项 */
+.option-dont-know {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  text-align: center;
+  border: 1.5px dashed var(--text-muted);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.95rem;
+}
+
+.option-dont-know:hover {
+  border-color: var(--red-pen);
+  color: var(--red-pen);
+  background: rgba(228, 87, 46, 0.05);
+}
+
+/* 反馈区 */
+.feedback-area {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: var(--border-ink);
+  display: none;
+  position: relative;
+}
+
+.feedback-area.success {
+  background: rgba(42, 157, 143, 0.05);
+  border-color: var(--correction);
+}
+
+.feedback-area.error {
+  background: rgba(228, 87, 46, 0.05);
+  border-color: var(--red-pen);
+}
+
+.feedback-message {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.correct-answer-reveal {
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+  color: var(--red-pen);
+  border-bottom: 2px solid var(--red-pen);
+  display: inline-block;
+  padding-bottom: 2px;
+}
+
+/* 提交按钮区 */
+.submit-area {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* ========== 结果页 ========== */
+.result-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.result-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* 分数展示 - 手写体大号 */
+.score-display {
+  position: relative;
+  display: inline-block;
+  margin: 1rem 0;
+}
+
+.score-number {
+  font-family: var(--font-hand);
+  font-size: clamp(4rem, 12vw, 7rem);
+  color: var(--red-pen);
+  line-height: 1;
+  transform: rotate(-3deg);
+  display: inline-block;
+}
+
+.score-unit {
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
+  color: var(--red-pen);
+  margin-left: 0.5rem;
+}
+
+.score-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140%;
+  height: 140%;
+  border: 2px solid var(--red-pen);
+  border-radius: 50%;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* 统计网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-item {
+  border: var(--border-ink);
+  padding: 1.5rem;
+  text-align: center;
+  position: relative;
+}
+
+.stat-item .stat-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-item .stat-value {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* 等级标签 */
+.level-badge {
+  display: inline-block;
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
+  color: var(--red-pen);
+  border: 2px solid var(--red-pen);
+  padding: 0.25rem 1rem;
+  transform: rotate(-2deg);
+  margin-top: 1rem;
+}
+
+/* 学习建议 - 批注样式 */
+.suggestions-section {
+  margin-top: 3rem;
+}
+
+.suggestions-section h3 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.suggestions-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--red-pen);
+  opacity: 0.5;
+}
+
+.suggestion-note {
+  border-left: 3px solid var(--highlight);
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.suggestion-note::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  background: var(--highlight);
+  border: 1.5px solid var(--ink);
+}
+
+.suggestion-note p {
+  margin: 0;
+  line-height: 1.8;
+}
+
+/* 错题列表 */
+.wrong-answers {
+  margin-top: 2rem;
+}
+
+.wrong-answers h3 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+}
+
+.wrong-item {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.1);
+}
+
+.wrong-word {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ink);
+  text-decoration: line-through;
+  text-decoration-color: var(--red-pen);
+  text-decoration-thickness: 2px;
+}
+
+.wrong-arrow {
+  font-family: var(--font-hand);
+  color: var(--red-pen);
+  font-size: 1.2rem;
+}
+
+.wrong-correct {
+  background: rgba(42, 157, 143, 0.15);
+  padding: 0.2rem 0.5rem;
+  border-bottom: 2px solid var(--correction);
+  color: var(--ink);
+}
+
+/* 操作区 */
+.action-area {
+  text-align: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(26, 26, 26, 0.1);
+}
+
+/* 响应式 */
+@media (max-width: 600px) {
+  .option-note {
+    padding: 1rem;
+    font-size: 0.95rem;
+  }
+  
+  .word-display {
+    font-size: 2.2rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

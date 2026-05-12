@@ -1,0 +1,11 @@
+- generic [ref=e2]:
+  - heading "词汇量测评工具" [level=1] [ref=e3]
+  - generic [ref=e5]:
+    - heading "欢迎使用词汇量测评工具" [level=2] [ref=e6]
+    - paragraph [ref=e7]: 本工具采用分层抽样的方法，从不同难度级别的单词库中随机抽取50个单词，通过测试您的正确率来估算您的词汇量。
+    - paragraph [ref=e8]: 测评过程中，您需要从选项中选择每个单词的正确中文意思。
+    - paragraph [ref=e9]: 测评完成后，系统会根据您的表现计算出您的词汇量水平，并提供相应的学习建议。
+    - paragraph [ref=e11]: 加载完成！共 3481 个单词
+    - generic [ref=e12]:
+      - button "开始测评" [ref=e13] [cursor=pointer]
+      - button "检查加载状态" [ref=e14] [cursor=pointer]
