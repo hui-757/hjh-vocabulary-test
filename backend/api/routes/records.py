@@ -11,8 +11,8 @@ from api.record_models import RecordManager, init_db
 
 records_bp = Blueprint('records', __name__, url_prefix='/api')
 
-# 初始化数据库
-init_db()
+# 注意：init_db() 不再在模块导入时调用，改由 create_app() 显式调用
+# init_db()
 
 
 @records_bp.route('/records', methods=['POST'])

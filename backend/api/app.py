@@ -39,6 +39,14 @@ def create_app():
     app.register_blueprint(users_bp)
     app.register_blueprint(records_bp)
     
+    # 初始化数据库（SQLite 表结构）
+    from api.record_models import init_db
+    try:
+        init_db()
+        print("[OK] Database initialized")
+    except Exception as e:
+        print(f"[WARN] Database init failed: {e}")
+    
     # ==================== 前端静态文件服务 ====================
     
     @app.route('/')
