@@ -23,9 +23,20 @@ from api.routes.records import records_bp
 
 def create_app():
     """应用工厂"""
-    # 计算项目根目录（backend/api/app.py → 上三级到项目根）
+    # 计算项目根目录
+    # 方式1：基于 __file__（backend/api/app.py → 上三级）
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     frontend_dir = os.path.join(project_root, 'frontend')
+    
+    # 方式2：如果找不到 frontend，用当前工作目录（Render 容器里 cwd 才是项目根）
+    if not os.path.exists(frontend_dir):
+        project_root = os.getcwd()
+        frontend_dir = os.path.join(project_root, 'frontend')
+    
+    # 方式3：如果 cwd 是 backend 子目录，向上找一级
+    if not os.path.exists(frontend_dir):
+        project_root = os.path.dirname(os.getcwd())
+        frontend_dir = os.path.join(project_root, 'frontend')
     
     app = Flask(__name__)
     CORS(app, resources={
