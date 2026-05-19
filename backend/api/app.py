@@ -43,9 +43,9 @@ def create_app():
     from api.record_models import init_db
     try:
         init_db()
-        print("[OK] Database initialized")
+        app.logger.info("[OK] Database initialized")
     except Exception as e:
-        print(f"[WARN] Database init failed: {e}")
+        app.logger.warning(f"[WARN] Database init failed: {e}")
     
     # ==================== 前端静态文件服务 ====================
     
