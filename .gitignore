@@ -33,7 +33,9 @@ Thumbs.db
 *.log
 
 # 词库数据（大文件）
-data/word_bank/*.json
+# word_bank.json 是核心词库，必须上传
+# data/word_bank/*.json
+!data/word_bank/word_bank.json
 !data/word_bank/.gitkeep
 
 # Excel源文件（可选）
