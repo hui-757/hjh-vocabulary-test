@@ -61,6 +61,39 @@ try:
 except Exception as e:
     app.logger.warning(f"[WARN] Database init failed: {e}")
 
+# 初始化默认用户（如果 users.json 不存在）
+import json
+from config.settings import ensure_directory, USER_FILE
+
+def init_default_users():
+    """如果用户数据文件不存在，创建默认管理员"""
+    if os.path.exists(USER_FILE):
+        return  # 已有用户数据，不覆盖
+    
+    ensure_directory(os.path.dirname(USER_FILE))
+    
+    # 创建默认管理员账号
+    default_users = {
+        "huajianghui": {
+            "id": "huajianghui",
+            "username": "huajianghui",
+            "nickname": "管理员",
+            "password": "admin123",  # 明文密码，首次部署后建议修改
+            "role": "admin",
+            "created_at": "2026-05-19T00:00:00"
+        }
+    }
+    
+    with open(USER_FILE, 'w', encoding='utf-8') as f:
+        json.dump(default_users, f, ensure_ascii=False, indent=2)
+    
+    app.logger.info("[OK] Default admin user created: huajianghui / admin123")
+
+try:
+    init_default_users()
+except Exception as e:
+    app.logger.warning(f"[WARN] Default user init failed: {e}")
+
 
 # ==================== 前端静态文件服务 ====================
 
