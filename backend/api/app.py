@@ -52,7 +52,22 @@ def create_app():
     @app.route('/')
     def serve_root():
         """首页"""
-        return send_from_directory(os.path.join(frontend_dir, 'pages'), 'index.html')
+        pages_dir = os.path.join(frontend_dir, 'pages')
+        index_path = os.path.join(pages_dir, 'index.html')
+        if os.path.exists(index_path):
+            return send_from_directory(pages_dir, 'index.html')
+        # 调试信息：返回路径信息帮助诊断
+        return jsonify({
+            "error": "index.html not found",
+            "project_root": project_root,
+            "frontend_dir": frontend_dir,
+            "pages_dir": pages_dir,
+            "index_path": index_path,
+            "cwd": os.getcwd(),
+            "frontend_exists": os.path.exists(frontend_dir),
+            "pages_exists": os.path.exists(pages_dir),
+            "list_root": os.listdir(project_root) if os.path.exists(project_root) else "N/A"
+        }), 404
     
     @app.route('/pages/<path:filename>')
     def serve_pages(filename):
