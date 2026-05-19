@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试记录 - 词汇量测评</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <style>
+        .records-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .records-header h2 {
+            margin: 0;
+        }
+        .record-card {
+            background: white;
+            border: var(--border-ink);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+        .record-card:hover {
+            box-shadow: var(--shadow-hard-sm);
+            transform: translate(-2px, -2px);
+        }
+        .record-card:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+        .record-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .record-stats {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .record-stat {
+            display: flex;
+            flex-direction: column;
+        }
+        .record-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .record-stat-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+        .record-stat-value.accent {
+            color: var(--red-pen);
+        }
+        .record-level {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            padding: 4px 12px;
+            border: 1.5px solid var(--ink);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .empty-tip {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        .back-link {
+            display: inline-block;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .records-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .detail-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 26, 26, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .detail-modal.active {
+            display: flex;
+        }
+        .detail-content {
+            background: var(--paper);
+            border: var(--border-ink);
+            box-shadow: var(--shadow-hard);
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .detail-close {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+        .detail-close:hover {
+            color: var(--red-pen);
+        }
+        .wrong-list {
+            margin-top: 1rem;
+        }
+        .wrong-list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        .wrong-list-item:last-child {
+            border-bottom: none;
+        }
+        .wrong-list-word {
+            font-weight: 600;
+            color: var(--ink);
+        }
+        .wrong-list-mean {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+        
+        <div class="records-header">
+            <h2>📋 测试记录</h2>
+        </div>
+        
+        <div class="records-actions" id="records-actions">
+            <!-- 按钮由 JS 动态插入 -->
+        </div>
+        
+        <div id="records-content">
+            <p class="empty-tip">加载中...</p>
+        </div>
+    </div>
+    
+    <!-- 详情弹窗 -->
+    <div id="detail-modal" class="detail-modal">
+        <div class="detail-content">
+            <span class="detail-close" onclick="closeDetail()">&times;</span>
+            <h3 id="detail-title">测试详情</h3>
+            <div id="detail-stats"></div>
+            <div id="detail-wrongs"></div>
+        </div>
+    </div>
+    
+    <script src="../js/common.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        (async function() {
+            await AUTH.init();
+            
+            const user = AUTH.getCachedUser();
+            
+            if (!user) {
+                // 未登录
+                document.getElementById('records-content').innerHTML = `
+                    <div class="empty-tip">
+                        <p>您当前未登录，无法查看测试记录</p>
+                        <p style="margin-top: 1rem;">请先登录以使用错题查询功能</p>
+                        <button class="btn" style="margin-top: 1rem;" onclick="AUTH.showLoginModal()">去登录</button>
+                        <a href="index.html" class="btn btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">返回首页</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 加载测试记录
+            const result = await AUTH.fetchRecords();
+            
+            if (!result.ok || !result.data.success) {
+                document.getElementById('records-content').innerHTML = `
+                    <div class="empty-tip">
+                        <p>加载失败：${result.data.message || '未知错误'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const records = result.data.records || [];
+            
+            // 添加操作按钮
+            const actions = document.getElementById('records-actions');
+            actions.innerHTML = `
+                <button class="btn btn-outline btn-sm" onclick="goToMistakes()">
+                    📕 错题本
+                </button>
+            `;
+            
+            // 管理员额外显示管理记录按钮
+            if (AUTH.isAdmin()) {
+                const adminBtn = document.createElement('button');
+                adminBtn.className = 'btn btn-red btn-sm';
+                adminBtn.textContent = '📊 管理记录';
+                adminBtn.onclick = () => window.location.href = 'admin-records.html';
+                actions.appendChild(adminBtn);
+            }
+            
+            if (records.length === 0) {
+                document.getElementById('records-content').innerHTML = `
+                    <div class="empty-tip">
+                        <p>暂无测试记录</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem;">完成一次测评后，记录将自动保存到这里</p>
+                        <a href="index.html" class="btn" style="margin-top: 1rem;">去测评</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 渲染记录列表
+            const content = document.getElementById('records-content');
+            content.innerHTML = '';
+            
+            records.forEach(record => {
+                const card = document.createElement('div');
+                card.className = 'record-card';
+                card.onclick = () => showDetail(record.id);
+                
+                const date = record.createdAt 
+                    ? new Date(record.createdAt).toLocaleString() 
+                    : '-';
+                
+                card.innerHTML = `
+                    <div class="record-date">${date}</div>
+                    <div class="record-stats">
+                        <div class="record-stat">
+                            <span class="record-stat-label">正确率</span>
+                            <span class="record-stat-value accent">${record.correctRate}%</span>
+                        </div>
+                        <div class="record-stat">
+                            <span class="record-stat-label">词汇量</span>
+                            <span class="record-stat-value">${record.vocabularySize} 词</span>
+                        </div>
+                        <div class="record-stat">
+                            <span class="record-stat-label">答对/总题</span>
+                            <span class="record-stat-value">${record.correctCount}/${record.totalAnswered}</span>
+                        </div>
+                    </div>
+                    <div class="record-level">${record.level || '未评定'}</div>
+                `;
+                
+                content.appendChild(card);
+            });
+        })();
+        
+        async function showDetail(recordId) {
+            const result = await AUTH.fetchRecordDetail(recordId);
+            if (!result.ok || !result.data.success) {
+                alert('加载详情失败：' + (result.data.message || '未知错误'));
+                return;
+            }
+            
+            const record = result.data.record;
+            const modal = document.getElementById('detail-modal');
+            
+            document.getElementById('detail-title').textContent = '测试详情';
+            document.getElementById('detail-stats').innerHTML = `
+                <div class="record-stats" style="margin-top: 1rem;">
+                    <div class="record-stat">
+                        <span class="record-stat-label">正确率</span>
+                        <span class="record-stat-value accent">${record.correctRate}%</span>
+                    </div>
+                    <div class="record-stat">
+                        <span class="record-stat-label">词汇量</span>
+                        <span class="record-stat-value">${record.vocabularySize} 词</span>
+                    </div>
+                    <div class="record-stat">
+                        <span class="record-stat-label">答对/总题</span>
+                        <span class="record-stat-value">${record.correctCount}/${record.totalAnswered}</span>
+                    </div>
+                </div>
+                <div style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+                    ${record.createdAt ? new Date(record.createdAt).toLocaleString() : '-'}
+                </div>
+            `;
+            
+            const wrongs = record.wrongWords || [];
+            if (wrongs.length > 0) {
+                document.getElementById('detail-wrongs').innerHTML = `
+                    <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">❌ 错误单词 (${wrongs.length}个)</h4>
+                    <div class="wrong-list">
+                        ${wrongs.map(w => `
+                            <div class="wrong-list-item">
+                                <span class="wrong-list-word">${w.word}</span>
+                                <span class="wrong-list-mean">${w.mean}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                document.getElementById('detail-wrongs').innerHTML = `
+                    <p style="margin-top: 1.5rem; color: var(--correction);">🎉 本次测试没有错题，全对！</p>
+                `;
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function closeDetail() {
+            document.getElementById('detail-modal').classList.remove('active');
+        }
+        
+        // 点击弹窗外部关闭
+        document.getElementById('detail-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeDetail();
+        });
+        
+        function goToMistakes() {
+            window.location.href = 'mistakes.html';
+        }
+    </script>
+    
+    <!-- 登录弹窗 -->
+    <div id="auth-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" onclick="AUTH.hideLoginModal()">&times;</span>
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login" onclick="AUTH.switchAuthTab('login')">登录</div>
+                <div class="auth-tab" data-tab="register" onclick="AUTH.switchAuthTab('register')">注册</div>
+            </div>
+            
+            <div id="login-panel" class="auth-panel active">
+                <h3 style="margin-bottom: 1rem;">用户登录</h3>
+                <input type="text" id="login-username" placeholder="用户名" class="form-input">
+                <input type="password" id="login-password" placeholder="密码" class="form-input">
+                <button class="btn btn-filled" style="width: 100%; margin-top: 0.5rem;" onclick="doLogin()">登录</button>
+                <p id="login-msg" class="form-msg"></p>
+            </div>
+            
+            <div id="register-panel" class="auth-panel">
+                <h3 style="margin-bottom: 1rem;">用户注册</h3>
+                <input type="text" id="reg-username" placeholder="用户名" class="form-input">
+                <input type="text" id="reg-nickname" placeholder="昵称（可选）" class="form-input">
+                <input type="password" id="reg-password" placeholder="密码（至少6位）" class="form-input">
+                <input type="password" id="reg-password2" placeholder="确认密码" class="form-input">
+                <button class="btn btn-filled" style="width: 100%; margin-top: 0.5rem;" onclick="doRegister()">注册</button>
+                <p id="reg-msg" class="form-msg"></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function doLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const msg = document.getElementById('login-msg');
+            msg.textContent = '';
+            msg.className = 'form-msg';
+            if (!username || !password) {
+                msg.textContent = '请填写用户名和密码';
+                msg.className = 'form-msg error';
+                return;
+            }
+            const result = await AUTH.login(username, password);
+            if (result.ok && result.data.success) {
+                msg.textContent = '登录成功！';
+                msg.className = 'form-msg success';
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                msg.textContent = result.data.message || '登录失败';
+                msg.className = 'form-msg error';
+            }
+        }
+        
+        async function doRegister() {
+            const username = document.getElementById('reg-username').value.trim();
+            const nickname = document.getElementById('reg-nickname').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const password2 = document.getElementById('reg-password2').value;
+            const msg = document.getElementById('reg-msg');
+            msg.textContent = '';
+            msg.className = 'form-msg';
+            if (!username || !password) {
+                msg.textContent = '用户名和密码不能为空';
+                msg.className = 'form-msg error';
+                return;
+            }
+            if (password.length < 6) {
+                msg.textContent = '密码长度至少6位';
+                msg.className = 'form-msg error';
+                return;
+            }
+            if (password !== password2) {
+                msg.textContent = '两次输入的密码不一致';
+                msg.className = 'form-msg error';
+                return;
+            }
+            const result = await AUTH.register(username, password, nickname || username);
+            if (result.ok && result.data.success) {
+                msg.textContent = '注册成功！正在登录...';
+                msg.className = 'form-msg success';
+                const loginRes = await AUTH.login(username, password);
+                if (loginRes.ok) {
+                    setTimeout(() => window.location.reload(), 600);
+                }
+            } else {
+                msg.textContent = result.data.message || '注册失败';
+                msg.className = 'form-msg error';
+            }
+        }
+    </script>
+</body>
+</html>

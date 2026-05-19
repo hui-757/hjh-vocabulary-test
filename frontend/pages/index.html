@@ -8,6 +8,13 @@
     <link rel="stylesheet" href="../css/index.css">
 </head>
 <body>
+    <!-- 顶部用户区域 -->
+    <div id="user-header" class="user-header">
+        <button class="btn btn-outline btn-sm" onclick="AUTH.showLoginModal()">
+            登录 / 注册
+        </button>
+    </div>
+    
     <div class="container">
         
         <!-- ==================== 开始页面 ==================== -->
@@ -170,7 +177,8 @@
     </div>
     
     <script src="../js/common.js"></script>
-    <script src="../js/wordBank.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/wordBank.js?v=2026"></script>
     <script src="../js/exam.js"></script>
     <script>
         /**
@@ -474,7 +482,25 @@
                     wrongAnswersSection.style.display = 'none';
                 }
                 
+                // 保存测试记录到后端（如果已登录）
+                this.saveExamRecord(result);
+                
                 this.switchPage('result-page');
+            },
+            
+            async saveExamRecord(result) {
+                if (!AUTH.isLoggedIn()) {
+                    console.log('[saveExamRecord] 未登录，跳过保存');
+                    return;
+                }
+                try {
+                    const wrongAnswers = this.exam.getWrongAnswers();
+                    console.log('[saveExamRecord] 正在保存记录...', { result, wrongAnswers });
+                    const res = await AUTH.saveRecord(result, wrongAnswers);
+                    console.log('[saveExamRecord] 保存结果:', res);
+                } catch (e) {
+                    console.error('[saveExamRecord] 保存记录失败:', e);
+                }
             },
             
             resetExam() {
@@ -485,7 +511,98 @@
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', () => {
             app.init();
+            AUTH.init().then(() => initUserHeader());
         });
+    </script>
+
+    <!-- 登录/注册弹窗 -->
+    <div id="auth-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" onclick="AUTH.hideLoginModal()">&times;</span>
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login" onclick="AUTH.switchAuthTab('login')">登录</div>
+                <div class="auth-tab" data-tab="register" onclick="AUTH.switchAuthTab('register')">注册</div>
+            </div>
+            
+            <div id="login-panel" class="auth-panel active">
+                <h3 style="margin-bottom: 1rem;">用户登录</h3>
+                <input type="text" id="login-username" placeholder="用户名" class="form-input">
+                <input type="password" id="login-password" placeholder="密码" class="form-input">
+                <button class="btn btn-filled" style="width: 100%; margin-top: 0.5rem;" onclick="doLogin()">登录</button>
+                <p id="login-msg" class="form-msg"></p>
+            </div>
+            
+            <div id="register-panel" class="auth-panel">
+                <h3 style="margin-bottom: 1rem;">用户注册</h3>
+                <input type="text" id="reg-username" placeholder="用户名" class="form-input">
+                <input type="text" id="reg-nickname" placeholder="昵称（可选）" class="form-input">
+                <input type="password" id="reg-password" placeholder="密码（至少6位）" class="form-input">
+                <input type="password" id="reg-password2" placeholder="确认密码" class="form-input">
+                <button class="btn btn-filled" style="width: 100%; margin-top: 0.5rem;" onclick="doRegister()">注册</button>
+                <p id="reg-msg" class="form-msg"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function doLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const msg = document.getElementById('login-msg');
+            msg.textContent = '';
+            msg.className = 'form-msg';
+            if (!username || !password) {
+                msg.textContent = '请填写用户名和密码';
+                msg.className = 'form-msg error';
+                return;
+            }
+            const result = await AUTH.login(username, password);
+            if (result.ok && result.data.success) {
+                msg.textContent = '登录成功！';
+                msg.className = 'form-msg success';
+                setTimeout(() => { AUTH.hideLoginModal(); initUserHeader(); }, 600);
+            } else {
+                msg.textContent = result.data.message || '登录失败';
+                msg.className = 'form-msg error';
+            }
+        }
+        
+        async function doRegister() {
+            const username = document.getElementById('reg-username').value.trim();
+            const nickname = document.getElementById('reg-nickname').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const password2 = document.getElementById('reg-password2').value;
+            const msg = document.getElementById('reg-msg');
+            msg.textContent = '';
+            msg.className = 'form-msg';
+            if (!username || !password) {
+                msg.textContent = '用户名和密码不能为空';
+                msg.className = 'form-msg error';
+                return;
+            }
+            if (password.length < 6) {
+                msg.textContent = '密码长度至少6位';
+                msg.className = 'form-msg error';
+                return;
+            }
+            if (password !== password2) {
+                msg.textContent = '两次输入的密码不一致';
+                msg.className = 'form-msg error';
+                return;
+            }
+            const result = await AUTH.register(username, password, nickname || username);
+            if (result.ok && result.data.success) {
+                msg.textContent = '注册成功！正在登录...';
+                msg.className = 'form-msg success';
+                const loginRes = await AUTH.login(username, password);
+                if (loginRes.ok) {
+                    setTimeout(() => { AUTH.hideLoginModal(); initUserHeader(); }, 600);
+                }
+            } else {
+                msg.textContent = result.data.message || '注册失败';
+                msg.className = 'form-msg error';
+            }
+        }
     </script>
 </body>
 </html>

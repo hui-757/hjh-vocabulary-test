@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理记录 - 词汇量测评</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <style>
+        .admin-records-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .admin-records-header h2 {
+            margin: 0;
+        }
+        .stats-summary {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .summary-card {
+            background: white;
+            border: var(--border-ink);
+            padding: 1rem 1.5rem;
+            flex: 1;
+        }
+        .summary-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--red-pen);
+        }
+        .mistake-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .mistake-table th,
+        .mistake-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .mistake-table th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+        .mistake-table tr:last-child td {
+            border-bottom: none;
+        }
+        .mistake-table tr:hover {
+            background: #f8fafc;
+        }
+        .count-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            background: var(--red-pen);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+        .empty-tip {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        .back-link {
+            display: inline-block;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="records.html" class="back-link">← 返回测试记录</a>
+        
+        <div class="admin-records-header">
+            <h2>📊 管理记录（全服错题统计）</h2>
+            <span id="admin-identity" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+        </div>
+        
+        <div class="stats-summary" id="stats-summary">
+            <div class="summary-card">
+                <div class="summary-label">全服错题单词总数</div>
+                <div class="summary-value" id="total-words">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">全服累计错误次数</div>
+                <div class="summary-value" id="total-errors">-</div>
+            </div>
+        </div>
+        
+        <div id="records-content">
+            <p class="empty-tip">加载中...</p>
+        </div>
+    </div>
+    
+    <script src="../js/common.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        (async function() {
+            await AUTH.init();
+            
+            const user = AUTH.getCachedUser();
+            
+            // 权限检查
+            if (!user) {
+                document.getElementById('records-content').innerHTML = `
+                    <div class="empty-tip">
+                        <p>您尚未登录，无权访问此页面</p>
+                        <button class="btn" style="margin-top: 1rem;" onclick="AUTH.showLoginModal()">去登录</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (user.role !== 'admin') {
+                document.getElementById('records-content').innerHTML = `
+                    <div class="empty-tip">
+                        <p>您不是管理员，无权访问此页面</p>
+                        <a href="records.html" class="btn btn-secondary" style="margin-top: 1rem;">返回测试记录</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const levelText = user.admin_level === 2 ? '二级管理员' : '一级管理员';
+            document.getElementById('admin-identity').textContent = `当前身份：${levelText}`;
+            
+            // 加载全服错题统计
+            const result = await AUTH.fetchGlobalMistakes();
+            
+            if (!result.ok || !result.data.success) {
+                document.getElementById('records-content').innerHTML = `
+                    <div class="empty-tip">
+                        <p>加载失败：${result.data.message || '未知错误'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const stats = result.data.stats || {};
+            const mistakes = result.data.mistakes || [];
+            
+            document.getElementById('total-words').textContent = stats.totalWords || 0;
+            document.getElementById('total-errors').textContent = stats.totalErrors || 0;
+            
+            if (mistakes.length === 0) {
+                document.getElementById('records-content').innerHTML = `
+                    <p class="empty-tip">暂无全服错题数据</p>
+                `;
+                return;
+            }
+            
+            // 渲染表格
+            const table = document.createElement('table');
+            table.className = 'mistake-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>单词</th>
+                        <th>释义</th>
+                        <th>级别</th>
+                        <th>错误次数</th>
+                        <th>首次出现</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${mistakes.map((m, index) => `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><strong>${m.word}</strong></td>
+                            <td>${m.mean}</td>
+                            <td>${m.level || '-'}</td>
+                            <td><span class="count-badge">${m.mistakeCount}</span></td>
+                            <td>${m.firstTime ? new Date(m.firstTime).toLocaleDateString() : '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            
+            document.getElementById('records-content').innerHTML = '';
+            document.getElementById('records-content').appendChild(table);
+        })();
+    </script>
+    
+    <!-- 登录弹窗 -->
+    <div id="auth-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" onclick="AUTH.hideLoginModal()">&times;</span>
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login" onclick="AUTH.switchAuthTab('login')">登录</div>
+                <div class="auth-tab" data-tab="register" onclick="AUTH.switchAuthTab('register')">注册</div>
+            </div>
+            <div id="login-panel" class="auth-panel active">
+                <h3 style="margin-bottom: 1rem;">用户登录</h3>
+                <input type="text" id="login-username" placeholder="用户名" class="form-input">
+                <input type="password" id="login-password" placeholder="密码" class="form-input">
+                <button class="btn btn-filled" style="width: 100%; margin-top: 0.5rem;" onclick="doLogin()">登录</button>
+                <p id="login-msg" class="form-msg"></p>
+            </div>
+            <div id="register-panel" class="auth-panel">
+                <h3 style="margin-bottom: 1rem;">用户注册</h3>
+                <input type="text" id="reg-username" placeholder="用户名" class="form-input">
+                <input type="text" id="reg-nickname" placeholder="昵称（可选）" class="form-input">
+                <input type="password" id="reg-password" placeholder="密码（至少6位）" class="form-input">
+                <input type="password" id="reg-password2" placeholder="确认密码" class="form-input">
+                <button class="btn btn-filled" style="width: 100%; margin-top: 0.5rem;" onclick="doRegister()">注册</button>
+                <p id="reg-msg" class="form-msg"></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function doLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const msg = document.getElementById('login-msg');
+            msg.textContent = '';
+            msg.className = 'form-msg';
+            if (!username || !password) {
+                msg.textContent = '请填写用户名和密码';
+                msg.className = 'form-msg error';
+                return;
+            }
+            const result = await AUTH.login(username, password);
+            if (result.ok && result.data.success) {
+                msg.textContent = '登录成功！';
+                msg.className = 'form-msg success';
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                msg.textContent = result.data.message || '登录失败';
+                msg.className = 'form-msg error';
+            }
+        }
+        
+        async function doRegister() {
+            const username = document.getElementById('reg-username').value.trim();
+            const nickname = document.getElementById('reg-nickname').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const password2 = document.getElementById('reg-password2').value;
+            const msg = document.getElementById('reg-msg');
+            msg.textContent = '';
+            msg.className = 'form-msg';
+            if (!username || !password) {
+                msg.textContent = '用户名和密码不能为空';
+                msg.className = 'form-msg error';
+                return;
+            }
+            if (password.length < 6) {
+                msg.textContent = '密码长度至少6位';
+                msg.className = 'form-msg error';
+                return;
+            }
+            if (password !== password2) {
+                msg.textContent = '两次输入的密码不一致';
+                msg.className = 'form-msg error';
+                return;
+            }
+            const result = await AUTH.register(username, password, nickname || username);
+            if (result.ok && result.data.success) {
+                msg.textContent = '注册成功！正在登录...';
+                msg.className = 'form-msg success';
+                const loginRes = await AUTH.login(username, password);
+                if (loginRes.ok) {
+                    setTimeout(() => window.location.reload(), 600);
+                }
+            } else {
+                msg.textContent = result.data.message || '注册失败';
+                msg.className = 'form-msg error';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -17,6 +17,19 @@ WORD_BANK_DIR = os.path.join(DATA_DIR, 'word_bank')
 WORD_BANK_FILE = os.path.join(WORD_BANK_DIR, 'word_bank.json')
 HIGH_SCHOOL_WORDS_COUNT = 1866
 
+# 用户数据配置
+USERS_FILE = os.path.join(DATA_DIR, 'users.json')
+API_PORT = 5000
+
+# 数据库配置
+DB_DIR = os.path.join(DATA_DIR, 'db')
+DB_FILE = os.path.join(DB_DIR, 'records.db')
+
+def ensure_directory(path):
+    """确保目录存在"""
+    if not os.path.exists(path):
+        os.makedirs(path)
+
 # Excel文件配置
 SUPPORTED_EXTENSIONS = ['.xlsx', '.xls']
 

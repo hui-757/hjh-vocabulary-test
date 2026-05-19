@@ -5,6 +5,8 @@
   "main": "src/pages/index.html",
   "scripts": {
     "start": "python -m http.server 8080",
+    "start:api": "python backend/api/app.py",
+    "start:all": "start_server.bat",
     "test": "python -m pytest backend/tests/",
     "convert": "python backend/scripts/convert_excel.py",
     "update-bank": "python backend/scripts/update_word_bank.py",

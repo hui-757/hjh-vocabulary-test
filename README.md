@@ -40,16 +40,19 @@ vocabulary-test-system/
 
 ## 快速开始
 
-### 方式一：直接打开
+### 方式一：直接打开（仅测评功能）
 
-双击 `index.html` 或在浏览器中打开，即可使用测评功能。
+双击 `index.html` 或在浏览器中打开，即可使用测评功能（无需登录）。
 
-### 方式二：启动本地服务器（推荐）
+### 方式二：启动完整服务（推荐）
+
+同时启动前端静态服务器 + 后端 API 服务：
 
 ```bash
 # 双击运行 start_server.bat
 # 或手动执行
-python -m http.server 8080
+python backend/api/app.py        # 后端 API (端口 5000)
+python -m http.server 8080       # 前端服务 (端口 8080)
 ```
 
 访问 `http://localhost:8080`
@@ -59,6 +62,12 @@ python -m http.server 8080
 ```bash
 # 启动服务器
 npm run start
+
+# 仅启动后端 API
+npm run start:api
+
+# 一键启动全部（Windows）
+npm run start:all
 
 # 运行测试
 npm run test
@@ -115,8 +124,26 @@ python scripts/stats.py
 
 ## 依赖
 
-- Python 3.6+, pandas, openpyxl
+- Python 3.6+, pandas, openpyxl, flask, flask-cors
 - 现代浏览器（Chrome, Firefox, Edge）
+
+## 用户管理
+
+系统支持两种用户角色：
+
+- **普通用户**：使用测评功能、查看个人资料
+- **管理员**：额外拥有用户管理权限
+
+### 使用流程
+
+1. **首页点击「登录/注册」** → 弹窗中可切换登录/注册
+2. **注册时**：第一个注册用户自动成为管理员
+3. **登录后**：右上角显示头像+昵称，点击进入个人中心
+4. **管理员**：个人中心内出现「管理用户」按钮，可查看所有用户信息
+
+### 不登录也能用
+
+测评功能完全支持游客模式，不强制登录。
 
 ## 许可证
 

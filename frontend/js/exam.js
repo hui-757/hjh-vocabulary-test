@@ -209,6 +209,13 @@ class VocabularyExam {
     }
 
     /**
+     * 获取错题列表
+     */
+    getWrongAnswers() {
+        return this.answers.filter(a => !a.isCorrect);
+    }
+
+    /**
      * 计算测评结果
      */
     calculateResult() {
