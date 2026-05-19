@@ -62,14 +62,13 @@ def create_app():
     
     @app.route('/')
     def serve_root():
-        """首页"""
+        """首页 - 诊断模式"""
         pages_dir = os.path.join(frontend_dir, 'pages')
         index_path = os.path.join(pages_dir, 'index.html')
-        if os.path.exists(index_path):
-            return send_from_directory(pages_dir, 'index.html')
-        # 调试信息：返回路径信息帮助诊断
+        
+        # 暂时总是返回诊断信息，帮助定位 Render 路径问题
         return jsonify({
-            "error": "index.html not found",
+            "stage": "path_debug",
             "project_root": project_root,
             "frontend_dir": frontend_dir,
             "pages_dir": pages_dir,
@@ -77,8 +76,10 @@ def create_app():
             "cwd": os.getcwd(),
             "frontend_exists": os.path.exists(frontend_dir),
             "pages_exists": os.path.exists(pages_dir),
-            "list_root": os.listdir(project_root) if os.path.exists(project_root) else "N/A"
-        }), 404
+            "index_exists": os.path.exists(index_path),
+            "list_root": os.listdir(project_root) if os.path.exists(project_root) else "N/A",
+            "list_frontend": os.listdir(frontend_dir) if os.path.exists(frontend_dir) else "N/A"
+        })
     
     @app.route('/pages/<path:filename>')
     def serve_pages(filename):
