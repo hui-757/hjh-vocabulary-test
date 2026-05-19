@@ -5,7 +5,11 @@
 
 const AUTH = {
     // API 基础地址
-    API_BASE: 'http://localhost:5000/api',
+    // 本地开发：前端在 8080，API 在 5000
+    // 生产环境（Render 等）：同域，使用相对路径
+    API_BASE: (window.location.hostname === 'localhost' && window.location.port === '8080')
+        ? 'http://localhost:5000/api'
+        : '/api',
     
     // localStorage 键名
     TOKEN_KEY: 'hjh_auth_token',
