@@ -8,10 +8,16 @@ Flask 应用入口
 import sys
 import os
 
-# 将 backend 目录加入路径
+# 将项目根目录和 backend 目录加入 Python 路径
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKEND_DIR = os.path.dirname(SCRIPT_DIR)
-sys.path.insert(0, BACKEND_DIR)
+PROJECT_ROOT = os.path.dirname(BACKEND_DIR)
+
+# 确保 backend 在 sys.path（兼容本地开发和 Render 部署）
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
@@ -23,19 +29,19 @@ from api.routes.records import records_bp
 
 def create_app():
     """应用工厂"""
-    # 计算项目根目录
-    # 方式1：基于 __file__（backend/api/app.py → 上三级）
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # 优先从当前工作目录找项目根
+    cwd = os.getcwd()
+    project_root = cwd
     frontend_dir = os.path.join(project_root, 'frontend')
     
-    # 方式2：如果找不到 frontend，用当前工作目录（Render 容器里 cwd 才是项目根）
+    # 如果 cwd 下没有 frontend，尝试向上找一级（wsgi.py 在项目根目录启动时 cwd=项目根）
     if not os.path.exists(frontend_dir):
-        project_root = os.getcwd()
+        project_root = os.path.dirname(cwd)
         frontend_dir = os.path.join(project_root, 'frontend')
     
-    # 方式3：如果 cwd 是 backend 子目录，向上找一级
+    # 如果还是没有，用 __file__ 的回退
     if not os.path.exists(frontend_dir):
-        project_root = os.path.dirname(os.getcwd())
+        project_root = PROJECT_ROOT
         frontend_dir = os.path.join(project_root, 'frontend')
     
     app = Flask(__name__)
@@ -62,24 +68,20 @@ def create_app():
     
     @app.route('/')
     def serve_root():
-        """首页 - 诊断模式"""
+        """首页"""
         pages_dir = os.path.join(frontend_dir, 'pages')
         index_path = os.path.join(pages_dir, 'index.html')
-        
-        # 暂时总是返回诊断信息，帮助定位 Render 路径问题
+        if os.path.exists(index_path):
+            return send_from_directory(pages_dir, 'index.html')
         return jsonify({
-            "stage": "path_debug",
+            "error": "index.html not found",
             "project_root": project_root,
             "frontend_dir": frontend_dir,
             "pages_dir": pages_dir,
-            "index_path": index_path,
             "cwd": os.getcwd(),
             "frontend_exists": os.path.exists(frontend_dir),
-            "pages_exists": os.path.exists(pages_dir),
-            "index_exists": os.path.exists(index_path),
-            "list_root": os.listdir(project_root) if os.path.exists(project_root) else "N/A",
-            "list_frontend": os.listdir(frontend_dir) if os.path.exists(frontend_dir) else "N/A"
-        })
+            "pages_exists": os.path.exists(pages_dir)
+        }), 404
     
     @app.route('/pages/<path:filename>')
     def serve_pages(filename):
